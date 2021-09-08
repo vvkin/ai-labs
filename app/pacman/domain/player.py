@@ -12,15 +12,13 @@ class PlayerAgent(Agent):
 
     def get_action(self, state) -> str:
         keys = list(state.keys_waiting()) + list(state.keys_pressed())
-        if len(keys) > 0:
-            self.keys = keys
-
+        self.keys = keys if keys else self.keys
+    
         legal = state.get_legal_actions(self.index)
         move = self.get_move(legal)
 
-        if move == Direction.STOP:
-            if self.last_move in legal:
-                move = self.last_move
+        if move == Direction.STOP and self.last_move in legal:
+            move = self.last_move
 
         if move not in legal:
             move = random.choice(legal)

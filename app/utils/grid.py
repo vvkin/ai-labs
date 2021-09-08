@@ -1,15 +1,12 @@
 import numpy as np
-from dataclasses import dataclass
 
-@dataclass(eq=False)
 class Grid:
-    width: int
-    height: int
-    value: bool = False
-
-    def __post_init__(self) -> None:
+    def __init__(self, width: int, height: int, value: bool = False) -> None:
+        self.width = width
+        self.height = height
+        self.value = value
         self.data = np.full((self.width, self.height), self.value)
-
+    
     def __getitem__(self, idx: int) -> bool:
         return self.data[idx]
 

@@ -40,28 +40,27 @@ class GameStateData:
         self.layout = layout
         self.score = 0
         self.score_change = 0
-
         self.agent_states = []
         num_ghosts = 0
+        
         for is_pacman, pos in layout.agent_positions:
             if not is_pacman:
-                if num_ghosts == num_ghost_agents:
-                    continue
-                else:
-                    num_ghosts += 1
-            self.agent_states.append(
-                AgentState(AgentConfig(pos, Direction.STOP), is_pacman)
-            )
+                if num_ghosts != num_ghost_agents:
+                    num_ghost_agents += 1
+                else: continue
+            state = AgentState(AgentConfig(pos, Direction.STOP), is_pacman)
+            self.agent_states.append(state)
+        
         self._eaten = [False] * len(self.agent_states)
 
 
 class Game:
     def __init__(self, agents: list[Agent], display, rules) -> None:
-        self.agentCrashed = False
+        self.agent_crashed = False
         self.agents = agents
         self.display = display
         self.rules = rules
-        self.gameOver = False
+        self.game_over = False
         self.history = []
 
     def run(self) -> None:
@@ -71,7 +70,7 @@ class Game:
         agent_idx = 0
         num_agents = len(self.agents)
 
-        while not self.gameOver:
+        while not self.game_over:
             agent = self.agents[agent_idx]
             action = agent.get_action(copy.deepcopy(self.state))
 

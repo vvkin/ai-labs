@@ -1,8 +1,10 @@
 import random
 from collections import Counter
 
+from app.config.types import Distribution
 
-def normalize(counter: dict[str, float]) -> dict[str, float]:
+
+def normalize(counter: Distribution) -> Distribution:
     if isinstance(counter, Counter):
         counter = dict(counter)
     sum_all = sum(counter.values())
@@ -12,7 +14,7 @@ def normalize(counter: dict[str, float]) -> dict[str, float]:
     return normalized
 
 
-def sample(dist: dict[str, float]) -> str:
+def sample(dist: Distribution) -> str:
     actions = random.choices(
         population=list(dist.keys()),
         weights=list(dist.values()),

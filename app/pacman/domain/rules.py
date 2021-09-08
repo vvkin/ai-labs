@@ -1,3 +1,4 @@
+from app.config.types import Vector
 import copy
 from dataclasses import InitVar, dataclass
 from typing import Optional
@@ -16,11 +17,9 @@ class GameState:
     state: InitVar["GameState"] = None
 
     def __post_init__(self, state: Optional["GameState"] = None) -> None:
-        if state is not None:
-            self.data = GameStateData(state.data)
-        else:
-            self.data = GameStateData()
-
+        self.data = GameStateData(state.data) if state is not None\
+            else GameStateData()
+    
     def get_legal_actions(self, agent_idx: int = 0) -> list[int]:
         if self.is_lose() or self.is_win():
             return []
@@ -67,7 +66,7 @@ class GameState:
     def get_pacman_state(self) -> AgentState:
         return copy.copy(self.data.agent_states[0])
 
-    def get_pacman_position(self) -> tuple[float, float]:
+    def get_pacman_position(self) -> Vector:
         return self.data.agent_states[0].get_position()
 
     def get_num_agents(self) -> int:
@@ -109,11 +108,11 @@ class GameRules:
 
     def win(self, state: GameState, game: Game) -> None:
         print(f"Pacman emerges victorious! Score: {state.data.score}")
-        game.gameOver = True
+        game.game_over = True
 
     def lose(self, state: GameState, game: Game) -> None:
         print(f"Pacman died! Score: {state.data.score}")
-        game.gameOver = True
+        game.game_over = True
 
 
 class PacmanRules:

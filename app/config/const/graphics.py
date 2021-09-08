@@ -1,5 +1,5 @@
-from enum import Enum
 from app.utils.graphics import format_color, color_to_vector
+
 
 class Color:
     WHITE = format_color(1.0, 1.0, 1.0)
@@ -15,13 +15,10 @@ class Color:
 
 
 class Ghost:
-    SIZE = 0.65
-    SPEED = 1.0
-    
+    SIZE = 0.65    
     SCARED_COLOR = Color.WHITE
     COLORS = [Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN]
     VEC_COLORS = [color_to_vector(color) for color in COLORS]
-    
     SHAPE = [
         (0, 0.3),
         (0.25, 0.75),
@@ -35,15 +32,15 @@ class Ghost:
         (-0.5, 0.3),
         (-0.25, 0.75),
     ]
-    
+
+
 class Pacman:
     COLOR = Color.LIGHT_YELLOW
     SCALE = 0.5
-    SPEED = 1.0
     OUTLINE_WIDTH = 2.0
 
 
-class Food:
+class Item:
     FOOD_COLOR = Color.WHITE
     FOOD_SIZE = 0.1
     CAPSULE_COLOR = Color.WHITE
