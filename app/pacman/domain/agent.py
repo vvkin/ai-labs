@@ -1,7 +1,7 @@
-from app.config.types import Vector
 from dataclasses import dataclass
 from typing import Optional
 
+from app.config.types import Vector
 from app.config.const.geometry import Direction, DIRECTIONS
 from app.utils.grid import Grid
 
@@ -44,31 +44,29 @@ class AgentState:
         self.start = self.configuration
 
     def get_position(self) -> Optional[Vector]:
-        if self.configuration == None:
-            return None
-        return self.configuration.get_position()
+        return None if self.configuration is None\
+            else self.configuration.get_position()
 
     def get_direction(self) -> int:
         return self.configuration.get_direction()
 
 
 class Actions:
+    EPS = 1e-3
+    
     @staticmethod
     def get_possible_actions(config: AgentConfig, walls: Grid) -> list[int]:
         x, y = config.get_position()
-        x_int, y_int = int(x + 0.5), int(y + 0.5)
-
-        if abs(x - x_int) + abs(y - y_int) > 1e-3:
+        if (x % 1) + (y % 1) > Actions.EPS:
             return [config.get_direction()]
-
-        actions = []
-        for direction, (dx, dy) in DIRECTIONS.items():
-            next_x = x_int + dx
-            next_y = y_int + dy
-            if not walls[next_x][next_y]:
-                actions.append(direction)
-
+        
+        x_int, y_int = map(round, (x, y))        
+        actions = [direction for direction, (dx, dy)\
+            in DIRECTIONS.items()
+            if not walls[x_int + dx][y_int + dy]
+        ]
         return actions
+
 
     @staticmethod
     def reverse_direction(action: int) -> int:

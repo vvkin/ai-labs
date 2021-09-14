@@ -26,13 +26,8 @@ class GameStateData:
             self._eaten = state._eaten
             self.score = state.score
 
-    def __copy_agent_states(
-        self, agent_states: list[AgentState]
-    ) -> list[AgentState]:
-        states = []
-        for state in agent_states:
-            states.append(copy.copy(state))
-        return states
+    def __copy_agent_states(self, agent_states: list[AgentState]) -> list[AgentState]:
+        return [copy.copy(state) for state in agent_states]
 
     def initialize(self, layout: Layout, num_ghost_agents: int) -> None:
         self.food = copy.deepcopy(layout.food)

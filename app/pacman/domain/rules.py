@@ -20,9 +20,8 @@ class GameState:
         self.data = GameStateData(state.data) if state is not None\
             else GameStateData()
     
-    def get_legal_actions(self, agent_idx: int = 0) -> list[int]:
-        if self.is_lose() or self.is_win():
-            return []
+    def get_legal_actions(self, agent_idx: int = 0) -> list[Optional[int]]:
+        if self.is_game_over(): return []
 
         if agent_idx == 0:
             return PacmanRules.get_legal_actions(self)
@@ -30,25 +29,26 @@ class GameState:
         return GhostRules.get_legal_actions(self, agent_idx)
 
     def generate_next(self, agent_idx: int, action: int) -> "GameState":
-        if self.is_lose() or self.is_win():
+        if self.is_game_over():
             raise Exception("Can't generate a successor of a terminal state.")
 
         state = GameState(self)
         if agent_idx == 0:
             state.data._eaten = [False] * state.get_num_agents()
             PacmanRules.apply_action(state, action)
-        else:
-            GhostRules.apply_action(state, action, agent_idx)
+        else: GhostRules.apply_action(state, action, agent_idx)
 
         if agent_idx == 0:
             state.data.score_change -= TIME_PENALTY
-        else:
-            GhostRules.decrement_timer(state.data.agent_states[agent_idx])
+        else: GhostRules.decrement_timer(state.data.agent_states[agent_idx])
         GhostRules.check_death(state, agent_idx)
 
         state.data._agent_moved = agent_idx
         state.data.score += state.data.score_change
         return state
+    
+    def is_game_over(self) -> bool:
+        return self.is_lose() or self.is_win()
 
     def is_lose(self) -> bool:
         return self.data._lose
@@ -92,7 +92,7 @@ class GameRules:
         ghost_agents: list[Agent],
         display,
     ) -> Game:
-        agents = [pacman_agent] + ghost_agents[: layout.get_num_ghosts()]
+        agents = [pacman_agent] + ghost_agents[:layout.get_num_ghosts()]
         state = GameState()
         state.initialize(display.ui, layout, len(ghost_agents))
         game = Game(agents, display, self)
@@ -130,11 +130,8 @@ class PacmanRules:
             raise Exception(f"Illegal action {action}")
 
         pacman_state = state.data.agent_states[0]
-
         vector = Actions.direction_to_vector(action, PACMAN_SPEED)
-        pacman_state.configuration = pacman_state.configuration.generate_next(
-            vector
-        )
+        pacman_state.configuration = pacman_state.configuration.generate_next(vector)
         next = pacman_state.configuration.get_position()
         nearest = get_nearest_point(next)
 
@@ -142,7 +139,7 @@ class PacmanRules:
             PacmanRules.consume(nearest, state)
 
     @staticmethod
-    def consume(position: tuple[float, float], state: GameState) -> None:
+    def consume(position: Vector, state: GameState) -> None:
         x, y = position
 
         if state.data.food[x][y]:
@@ -166,16 +163,12 @@ class GhostRules:
     @staticmethod
     def get_legal_actions(state: GameState, ghost_idx: int) -> list[int]:
         configuration = state.get_ghost_state(ghost_idx).configuration
-
         reverse = Actions.reverse_direction(configuration.get_direction())
-        actions = list(
-            filter(
-                lambda action: action != Direction.STOP,
-                Actions.get_possible_actions(
-                    configuration, state.data.layout.walls
-                ),
-            )
-        )
+        actions = [action for action in\
+            Actions.get_possible_actions(configuration, state.data.layout.walls)
+            if action != Direction.STOP
+        ]
+        
         if reverse in actions and len(actions) > 1:
             actions.remove(reverse)
         return actions
