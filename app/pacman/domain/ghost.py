@@ -1,10 +1,11 @@
 from collections import Counter
 from typing import Union
+
 from app.config.types import Distribution
 from app.config.const.geometry import Direction
 from app.utils.helpers import normalize, sample
 from app.pacman.domain.rules import GameState
-from .agent import Agent
+from app.pacman.domain.agent import Agent
 
 
 class GhostAgent(Agent):

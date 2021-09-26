@@ -12,3 +12,7 @@ def get_nearest_point(position: Vector) -> Point:
     grid_row = int(row + 0.5)
     grid_col = int(col + 0.5)
     return (grid_row, grid_col)
+
+def normalize_position(position: Point) -> tuple[int, int]:
+    return map(int, position)
+    

@@ -7,6 +7,7 @@ from app.pacman.domain.ghost import RandomGhost
 from app.pacman.domain.rules import GameRules
 from app.pacman.graphics.ui import UI
 from app.pacman.graphics.display import PacmanGraphics
+from app.pacman.search.pacman import PacmanSearchProblem
 
 
 def parse_args():
@@ -23,7 +24,7 @@ def parse_args():
         "--num-ghosts",
         type=int,
         help="The maximum number of ghosts to use",
-        default=2,
+        default=10,
     )
     parser.add_argument(
         "-z",
@@ -42,30 +43,36 @@ def parse_args():
         "--frame-time",
         type=float,
         help="Time to delay between frames; <0 means keyboard",
-        default=0.1,
+        default=0.12
     )
-    options = parser.parse_args()
-    args = {}
+    parser.add_argument(
+        "-a",
+        "--auto-pilot",
+        action="store_true",
+        help="Whether Pacman will be controlled by the algorithm",
+        default=False,
+    )
+
+    options, args = parser.parse_args(), {}
     if options.seed is not None:
         random.seed(options.seed)
 
-    args["layout"] = Layout.get_layout(options.layout)
-    if args["layout"] == None:
+    if (layout := Layout.get_layout(options.layout)) is None:
         raise Exception(f"The layout {options.layout} cannot be found")
+    else: args["layout"] = layout
 
-    args["ghost_agents"] = [
-        RandomGhost(idx + 1) for idx in range(options.num_ghosts)
-    ]
     args["pacman_agent"] = PlayerAgent()
-
-    args["display"] = PacmanGraphics(
-        UI(), zoom=options.zoom, frame_time=options.frame_time
-    )
+    args["ghost_agents"] = [RandomGhost(i + 1) for i in range(options.num_ghosts)]
+    args["display"] =  PacmanGraphics(UI(), zoom=options.zoom, frame_time=options.frame_time)
+    
+    if options.auto_pilot:
+        search = PacmanSearchProblem()
+        args["pacman_search"] = search
+    
     return args
 
 
 if __name__ == "__main__":
     args = parse_args()
-    rules = GameRules()
-    game = rules.new_game(**args)
+    game = GameRules.new_game(**args)
     game.run()

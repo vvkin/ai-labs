@@ -1,14 +1,16 @@
-from app.config.types import Image, Point, Vector
 import math
-from tkinter import Grid
 from typing import Optional
 
 from app.config.const.graphics import Pacman, Interface, Ghost, Item
 from app.config.const.geometry import Direction
+from app.config.types import Image, Point, Vector
+from app.utils.layout import Layout
+from app.utils.grid import Grid
+from app.utils.helpers import add_points
 from app.pacman.domain.rules import GameState
 from app.pacman.domain.agent import Agent, AgentState
-from app.utils.layout import Layout
-from .ui import UI
+from app.pacman.domain.game import GameStateData
+from app.pacman.graphics.ui import UI
 
 
 class InfoPanel:
@@ -92,20 +94,22 @@ class PacmanGraphics:
         self.agent_images[agent_idx] = (new_state, agent_image)
         self.ui.refresh()
 
-    def update(self, new_state: GameState) -> None:
+    def update(self, new_state: GameStateData) -> None:
         agent_idx = new_state._agent_moved
         agent_state = new_state.agent_states[agent_idx]
 
         if self.agent_images[agent_idx][0].is_pacman != agent_state.is_pacman:
             self.__swap_images(agent_idx, agent_state)
         prev_state, prev_image = self.agent_images[agent_idx]
-
+        
         if agent_state.is_pacman:
             self.__animate_pacman(agent_state, prev_state, prev_image)
-        else:
+            if new_state.pacman_search:
+                self.__draw_path(new_state)
+        else: 
             self.__move_ghost(agent_state, agent_idx, prev_image)
+            
         self.agent_images[agent_idx] = (agent_state, prev_image)
-
         if new_state._capsule_eaten is not None:
             self.__remove_capsules(new_state._capsule_eaten, self.capsules)
         if new_state._food_eaten is not None:
@@ -177,6 +181,25 @@ class PacmanGraphics:
                 image,
             )
         self.ui.refresh()
+    
+    def __draw_path(self, state: GameStateData) -> None:
+        if hasattr(self, "food_path"):
+            for node in self.food_path:
+                self.ui.remove_from_screen(node)
+        food_path = []
+        
+        for node in state.pacman_search.path:
+            screen = self.to_screen(node)
+            image = self.ui.circle(
+                screen,
+                0.2 * self.grid_size,
+                Pacman.COLOR,
+                style="arc",
+                width=1
+            )
+            food_path.append(image)
+        
+        self.food_path = food_path
 
     def __get_ghost_color(self, ghost: AgentState, ghost_idx: int) -> int:
         return Ghost.SCARED_COLOR if ghost.scared_timer > 0\
@@ -184,13 +207,10 @@ class PacmanGraphics:
 
     def __draw_ghost(self, ghost, agent_idx: int) -> Image:
         screen_x, screen_y = self.to_screen(self.__get_position(ghost))
-        coords = [
-            (
+        coords = [(
                 x * self.grid_size * Ghost.SIZE + screen_x,
                 y * self.grid_size * Ghost.SIZE + screen_y,
-            )
-            for x, y in Ghost.SHAPE
-        ]
+            ) for x, y in Ghost.SHAPE]
         color = self.__get_ghost_color(ghost, agent_idx)
         return [self.ui.polygon(coords, color, filled=1)]
 
@@ -245,7 +265,7 @@ class PacmanGraphics:
                     ):
                         self.ui.line(
                             screen,
-                            add(screen, (0, self.grid_size)),
+                            add_points(screen, (0, self.grid_size)),
                             Interface.WALL_COLOR,
                         )
                     if (
@@ -256,16 +276,12 @@ class PacmanGraphics:
                     ):
                         self.ui.line(
                             screen,
-                            add(screen, (self.grid_size, 0)),
+                            add_points(screen, (self.grid_size, 0)),
                             Interface.WALL_COLOR,
                         )
 
     def __is_wall(self, x: int, y: int, walls: Grid) -> bool:
-        if x < 0 or y < 0:
-            return False
-        if x >= walls.width or y >= walls.height:
-            return False
-        return walls[x][y]
+        return walls[x][y] if walls.is_valid_coord(x, y) else False
 
     def __draw_food(self, food: Grid) -> list[list[Optional[int]]]:
         food_images = []
@@ -283,8 +299,7 @@ class PacmanGraphics:
                         width=1,
                     )
                     image_row.append(point)
-                else:
-                    image_row.append(None)
+                else: image_row.append(None)
         return food_images
 
     def __draw_capsules(self, capsules: list) -> dict:
@@ -308,7 +323,3 @@ class PacmanGraphics:
     def __remove_capsules(self, cell: tuple[int, int], capsuleImages):
         x, y = cell
         self.ui.remove_from_screen(capsuleImages[(x, y)])
-
-
-def add(x, y):
-    return (x[0] + y[0], x[1] + y[1])
