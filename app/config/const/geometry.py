@@ -6,16 +6,13 @@ class Direction:
     EAST = 2
     
     @staticmethod
-    def as_list(with_stop: bool = False):
-        directions = [
+    def as_list() -> list[int]:
+        return [
             Direction.WEST,
             Direction.SOUTH,
             Direction.NORTH,
-            Direction.EAST,
+            Direction.EAST
         ]
-        if with_stop:
-            directions += [Direction.STOP]
-        return directions
 
 DIRECTIONS = {
     Direction.NORTH: (0, 1),

@@ -15,6 +15,8 @@ def normalize(counter: Distribution) -> Distribution:
         normalized[key] = value / sum_all
     return normalized
 
+def normalize_point(point: Point) -> Point:
+    return (round(point[0]), round(point[1]))
 
 def sample(dist: Distribution) -> str:
     actions = random.choices(

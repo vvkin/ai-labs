@@ -1,35 +1,33 @@
+
+from app.utils.helpers import add_points, normalize_point
+from dataclasses import dataclass, field
 from typing import Callable
 
 from app.pacman.domain.agent import Actions
 from app.config.const.geometry import Direction
-from dataclasses import dataclass, field
-
-
-from app.config.types import Vector
+from app.config.types import Point, Vector
 from app.pacman.search.algorithms import bfs, dfs, ucs
 from app.pacman.search.problem import Problem
-
 
 class PacmanSearchProblem(Problem):
     def update(self, state) -> None:
         self._walls = state.get_walls()
         self._goal = state.get_food()[0]
         self._start = state.get_pacman_position()
-        print(self._goal)
     
-    def get_start(self) -> Vector:
+    def get_start(self) -> Point:
         return self._start
 
-    def get_goal(self) -> bool:
+    def get_goal(self) -> Point:
         return self._goal
-    
-    def get_neighbors(self, position) -> list:
+
+    def get_neighbors(self, pos: Point) -> list[Point, float]:
         neighbors = []
         for action in Direction.as_list():
             vector = Actions.direction_to_vector(action)
-            next = (round(position[0] + vector[0]), round(position[1] + vector[1]))
-            x, y = next
-            if not self._walls[x][y]:
+            next = normalize_point(add_points(pos, vector))
+            next_x, next_y = next
+            if not self._walls[next_x][next_y]:
                 cost = self.cost_fn(next)
                 neighbors.append((next, cost))
         return neighbors

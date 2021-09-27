@@ -1,7 +1,7 @@
 import math
 from typing import Optional
 
-from app.config.const.graphics import Pacman, Interface, Ghost, Item
+from app.config.const.graphics import FoodPath, Pacman, Interface, Ghost, Item
 from app.config.const.geometry import Direction
 from app.config.types import Image, Point, Vector
 from app.utils.layout import Layout
@@ -51,6 +51,7 @@ class PacmanGraphics:
         self.zoom = zoom
         self.grid_size = Interface.DEFAULT_GRID_SIZE * zoom
         self.frame_time = frame_time
+        self.food_path = []
 
     def init(self, state: GameState) -> None:
         self.__start_graphics(state)
@@ -181,25 +182,25 @@ class PacmanGraphics:
                 image,
             )
         self.ui.refresh()
+        
+    def __clear_path(self) -> None:
+        for node in self.food_path:
+            self.ui.remove_from_screen(node)
+        self.food_path = []
     
     def __draw_path(self, state: GameStateData) -> None:
-        if hasattr(self, "food_path"):
-            for node in self.food_path:
-                self.ui.remove_from_screen(node)
-        food_path = []
-        
+        if self.food_path: self.__clear_path()
+
         for node in state.pacman_search.path:
             screen = self.to_screen(node)
             image = self.ui.circle(
                 screen,
-                0.2 * self.grid_size,
-                Pacman.COLOR,
+                FoodPath.SCALE * self.grid_size,
+                FoodPath.COLOR,
                 style="arc",
-                width=1
+                width=FoodPath.WIDTH
             )
-            food_path.append(image)
-        
-        self.food_path = food_path
+            self.food_path.append(image)
 
     def __get_ghost_color(self, ghost: AgentState, ghost_idx: int) -> int:
         return Ghost.SCARED_COLOR if ghost.scared_timer > 0\

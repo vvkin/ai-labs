@@ -47,6 +47,12 @@ class Item:
     CAPSULE_SIZE = 0.25
 
 
+class FoodPath:
+    COLOR = Color.BLUE
+    SCALE = 0.2
+    WIDTH = 1
+
+
 class Interface:
     DEFAULT_GRID_SIZE = 30.0
     INFO_PANEL_HEIGHT = 35
