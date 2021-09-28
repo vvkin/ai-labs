@@ -1,10 +1,9 @@
-
 import copy
-from typing import Optional
+from typing import Optional, Union
 
 from app.config.const.pacman import *
-from app.config.const.geometry import DIRECTIONS, Direction
-from app.config.types import Action, Vector
+from app.config.const.geometry import Direction
+from app.config.types import Action, Point, Vector
 from app.utils.layout import Layout
 from app.utils.geometry import get_nearest_point, manhattan_distance
 from app.utils.grid import Grid
@@ -28,7 +27,8 @@ class GameState:
 
     def generate_next(self, agent_idx: int, action: int) -> "GameState":
         if self.is_game_over():
-            raise Exception("Can't generate a successor of a terminal state.")
+            reason = "Can't generate a successor of a terminal state."
+            raise Exception(reason)
 
         state = GameState(self)
         if agent_idx == 0:
@@ -67,7 +67,6 @@ class GameState:
         GameState.keys_pressed = ui.keys_pressed
         GameState.keys_waiting = ui.keys_waiting
         self.data.initialize(layout, num_ghost_agents, search)
-        if search: self.data.pacman_search.update(self)
 
     def get_pacman_state(self) -> AgentState:
         return copy.copy(self.data.agent_states[0])
@@ -81,8 +80,8 @@ class GameState:
     def get_capsules(self) -> list:
         return self.data.capsules
     
-    def get_food(self) -> list:
-        return self.data.food.get_points()
+    def get_food(self) -> list[Union[Point, None]]:
+        return self.data.food.get_points() or [None]
 
     def get_num_food(self) -> int:
         return self.data.food.count()
@@ -129,7 +128,7 @@ class GameRules:
 
 class PacmanRules:
     @staticmethod
-    def get_legal_actions(state: GameState) -> list[int]:
+    def get_legal_actions(state: GameState) -> list[Action]:
         return Actions.get_possible_actions(
             state.get_pacman_state().configuration,
             state.data.layout.walls,
@@ -142,10 +141,6 @@ class PacmanRules:
             raise Exception(f"Illegal action {action}")
 
         pacman_state = state.data.agent_states[0]
-        if state.data.pacman_search:
-            if action != Direction.STOP or state.data.pacman_search.key_pressed(state):
-                state.data.pacman_search.update(state)
-        
         vector = Actions.direction_to_vector(action, PACMAN_SPEED)
         pacman_state.configuration = pacman_state.configuration.generate_next(vector)
         next = pacman_state.configuration.get_position()
@@ -190,7 +185,7 @@ class GhostRules:
         return actions
 
     @staticmethod
-    def apply_action(state: GameState, action: int, ghost_idx: int) -> None:
+    def apply_action(state: GameState, action: Action, ghost_idx: int) -> None:
         legal = GhostRules.get_legal_actions(state, ghost_idx)
         if action not in legal:
             raise Exception(f"Illegal action {action}")
@@ -245,7 +240,5 @@ class GhostRules:
             ghost_state.scared_timer = 0
 
     @staticmethod
-    def can_kill(
-        pacman: tuple[float, float], ghost: tuple[float, float]
-    ) -> bool:
+    def can_kill(pacman: Point, ghost: Point) -> bool:
         return manhattan_distance(pacman, ghost) <= COLLISION_TOLERANCE

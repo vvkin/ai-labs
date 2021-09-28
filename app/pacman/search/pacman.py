@@ -1,11 +1,10 @@
-
-from app.utils.helpers import add_points, normalize_point
 from dataclasses import dataclass, field
 from typing import Callable
 
 from app.pacman.domain.agent import Actions
 from app.config.const.geometry import Direction
 from app.config.types import Point, Vector
+from app.utils.geometry import add_points, normalize_point
 from app.pacman.search.algorithms import bfs, dfs, ucs
 from app.pacman.search.problem import Problem
 
@@ -38,14 +37,18 @@ class PacmanSearch:
     fns: list[Callable] = field(default_factory=lambda: [bfs, dfs, ucs])
     keys: list[str] = field(default_factory=lambda: ['z', 'Z'])
     path: list[Vector] = field(default_factory=list)
+    prev_idx: int = -1
     idx: int = 0
-    
-    def key_pressed(self, state) -> bool:
+
+    def key_pressed(self) -> bool:
+        return self.prev_idx != self.idx
+
+    def handle_key(self, state) -> None:
         if any(key for key in self.keys if key in state.keys_pressed()):
             self.idx = (self.idx + 1) % len(self.fns)
-            return True
-        else: return False
 
     def update(self, state) -> None:
         self.problem.update(state)
-        self.path = self.fns[self.idx](self.problem)
+        if self.problem.get_goal():
+            self.prev_idx = self.idx
+            self.path = self.fns[self.idx](self.problem)

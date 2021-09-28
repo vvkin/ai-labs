@@ -65,15 +65,22 @@ class Game:
         self.display.init(self.state.data)
         num_agents = len(self.agents)
         agent_idx = 0
-
+        
         while not self.game_over:
             agent = self.agents[agent_idx]
-            current_state = copy.deepcopy(self.state)
-            action = agent.get_action(current_state)
+            state = copy.deepcopy(self.state)
+            action = agent.get_action(state)
 
             self.history.append((agent_idx, action))
             self.state = self.state.generate_next(agent_idx, action)
-
+            
+            if self.state.data.pacman_search and agent_idx == 0:
+                pacman_search = self.state.data.pacman_search
+                pacman_search.handle_key(self.state)
+                if pacman_search.key_pressed() or action != Direction.STOP:
+                    pacman_search.update(self.state)
+                    self.display.draw_path(self.state.data)
+            
             self.display.update(self.state.data)
             self.rules.process(self.state, self)
             

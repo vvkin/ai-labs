@@ -4,7 +4,7 @@ from typing import Optional
 from app.config.types import Action, Vector
 from app.config.const.geometry import Direction, DIRECTIONS
 from app.utils.grid import Grid
-from app.utils.geometry import normalize_position
+from app.utils.geometry import normalize_point
 
 
 class Agent:
@@ -62,11 +62,11 @@ class Actions:
         if (x % 1) + (y % 1) > Actions.EPS:
             return [config.get_direction()]
 
-        x_int, y_int = normalize_position((x, y))
+        x_int, y_int = normalize_point((x, y))
         actions = []
 
         for direction, (dx, dy) in DIRECTIONS.items():
-            next_x, next_y = normalize_position((x_int + dx, y_int + dy))
+            next_x, next_y = normalize_point((x_int + dx, y_int + dy))
             if not walls[next_x][next_y]:
                 actions.append(direction)
 

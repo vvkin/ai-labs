@@ -3,7 +3,7 @@ import time
 from collections import Counter
 from typing import Any, Callable
 
-from app.config.types import Distribution, Point
+from app.config.types import Distribution
 
 
 def normalize(counter: Distribution) -> Distribution:
@@ -15,8 +15,6 @@ def normalize(counter: Distribution) -> Distribution:
         normalized[key] = value / sum_all
     return normalized
 
-def normalize_point(point: Point) -> Point:
-    return (round(point[0]), round(point[1]))
 
 def sample(dist: Distribution) -> str:
     actions = random.choices(
@@ -24,6 +22,7 @@ def sample(dist: Distribution) -> str:
         weights=list(dist.values()),
     )
     return actions[0]
+
 
 def time_it(fn: Callable) -> Callable:
     def timed(*args, **kwargs) -> Any:
@@ -33,6 +32,3 @@ def time_it(fn: Callable) -> Callable:
         print(f'Time ({fn.__name__}): {(end - start) * 1000} ms')
         return result
     return timed
-
-def add_points(x: Point, y: Point) -> Point:
-    return (x[0] + y[0], x[1] + y[1])

@@ -1,5 +1,6 @@
-from app.config.types import Vector
 from typing import Callable
+
+from app.config.types import Point, Vector
 
 
 class Problem:
@@ -14,6 +15,6 @@ class Problem:
 
     def get_goal(self) -> bool:
         raise NotImplemented()
-    
-    def get_neighbors(self) -> list:
+
+    def get_neighbors(self) -> list[Point, float]:
         raise NotImplemented()

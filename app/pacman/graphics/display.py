@@ -6,7 +6,7 @@ from app.config.const.geometry import Direction
 from app.config.types import Image, Point, Vector
 from app.utils.layout import Layout
 from app.utils.grid import Grid
-from app.utils.helpers import add_points
+from app.utils.geometry import add_points
 from app.pacman.domain.rules import GameState
 from app.pacman.domain.agent import Agent, AgentState
 from app.pacman.domain.game import GameStateData
@@ -105,8 +105,6 @@ class PacmanGraphics:
         
         if agent_state.is_pacman:
             self.__animate_pacman(agent_state, prev_state, prev_image)
-            if new_state.pacman_search:
-                self.__draw_path(new_state)
         else: 
             self.__move_ghost(agent_state, agent_idx, prev_image)
             
@@ -188,7 +186,7 @@ class PacmanGraphics:
             self.ui.remove_from_screen(node)
         self.food_path = []
     
-    def __draw_path(self, state: GameStateData) -> None:
+    def draw_path(self, state: GameStateData) -> None:
         if self.food_path: self.__clear_path()
 
         for node in state.pacman_search.path:
