@@ -7,7 +7,7 @@ from app.utils.graphics import format_color
 
 class UI:
     def __init__(self) -> None:
-        self.master = None
+        self.master = tkinter.Tk()
         self.keys_down = {}
         self.keys_wait = {}
         self.got_release = None

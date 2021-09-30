@@ -1,5 +1,7 @@
 import random
+import time
 from collections import Counter
+from typing import Any, Callable
 
 from app.config.types import Distribution
 
@@ -20,3 +22,13 @@ def sample(dist: Distribution) -> str:
         weights=list(dist.values()),
     )
     return actions[0]
+
+
+def time_it(fn: Callable) -> Callable:
+    def timed(*args, **kwargs) -> Any:
+        start = time.time()
+        result = fn(*args, **kwargs)
+        end = time.time()
+        print(f'Time ({fn.__name__}): {(end - start) * 1000} ms')
+        return result
+    return timed

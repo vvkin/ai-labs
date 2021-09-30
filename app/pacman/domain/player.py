@@ -1,11 +1,12 @@
 import random
 
 from app.config.const.geometry import Direction
-from .game import Agent
+from app.pacman.domain.game import Agent
 
 
 class PlayerAgent(Agent):
-    def __init__(self, index: int = 0) -> None:
+    def __init__(self, index: int = 0, auto_pilot: bool = False) -> None:
+        self.auto_pilot = auto_pilot
         self.last_move = Direction.STOP
         self.index = index
         self.keys = []

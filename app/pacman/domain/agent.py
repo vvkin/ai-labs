@@ -1,16 +1,17 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from app.config.types import Vector
+from app.config.types import Action, Vector
 from app.config.const.geometry import Direction, DIRECTIONS
 from app.utils.grid import Grid
+from app.utils.geometry import normalize_point
 
 
 class Agent:
     def __init__(self, index: int = 0) -> None:
         self.index = index
 
-    def get_action(self, state: object) -> str:
+    def get_action(self, state) -> str:
         raise NotImplementedError
 
 
@@ -52,21 +53,24 @@ class AgentState:
 
 
 class Actions:
-    EPS = 1e-3
+    EPS = 1e-6
     
     @staticmethod
-    def get_possible_actions(config: AgentConfig, walls: Grid) -> list[int]:
+    def get_possible_actions(config: AgentConfig, walls: Grid) -> list[Action]:
         x, y = config.get_position()
+        
         if (x % 1) + (y % 1) > Actions.EPS:
             return [config.get_direction()]
-        
-        x_int, y_int = map(round, (x, y))        
-        actions = [direction for direction, (dx, dy)\
-            in DIRECTIONS.items()
-            if not walls[x_int + dx][y_int + dy]
-        ]
-        return actions
 
+        x_int, y_int = normalize_point((x, y))
+        actions = []
+
+        for direction, (dx, dy) in DIRECTIONS.items():
+            next_x, next_y = normalize_point((x_int + dx, y_int + dy))
+            if not walls[next_x][next_y]:
+                actions.append(direction)
+
+        return actions
 
     @staticmethod
     def reverse_direction(action: int) -> int:

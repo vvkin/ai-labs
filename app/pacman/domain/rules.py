@@ -1,26 +1,23 @@
-from app.config.types import Vector
 import copy
-from dataclasses import InitVar, dataclass
-from typing import Optional
+from typing import Optional, Union
 
 from app.config.const.pacman import *
 from app.config.const.geometry import Direction
-from app.pacman.graphics.ui import UI
+from app.config.types import Action, Point, Vector
 from app.utils.layout import Layout
 from app.utils.geometry import get_nearest_point, manhattan_distance
-from .game import GameStateData, Game
-from .agent import Agent, Actions, AgentState
+from app.utils.grid import Grid
+from app.pacman.graphics.ui import UI
+from app.pacman.domain.agent import Agent, Actions, AgentState
+from app.pacman.domain.game import Game, GameStateData
+from app.pacman.search.pacman import PacmanSearch, PacmanSearchProblem
 
 
-@dataclass
 class GameState:
-    state: InitVar["GameState"] = None
+    def __init__(self, state: Optional["GameState"] = None) -> None:
+        self.data = GameStateData(state.data if state else None)
 
-    def __post_init__(self, state: Optional["GameState"] = None) -> None:
-        self.data = GameStateData(state.data) if state is not None\
-            else GameStateData()
-    
-    def get_legal_actions(self, agent_idx: int = 0) -> list[Optional[int]]:
+    def get_legal_actions(self, agent_idx: int = 0) -> list[Action]:
         if self.is_game_over(): return []
 
         if agent_idx == 0:
@@ -30,7 +27,8 @@ class GameState:
 
     def generate_next(self, agent_idx: int, action: int) -> "GameState":
         if self.is_game_over():
-            raise Exception("Can't generate a successor of a terminal state.")
+            reason = "Can't generate a successor of a terminal state."
+            raise Exception(reason)
 
         state = GameState(self)
         if agent_idx == 0:
@@ -47,6 +45,9 @@ class GameState:
         state.data.score += state.data.score_change
         return state
     
+    def get_walls(self) -> Grid:
+        return self.data.layout.walls
+    
     def is_game_over(self) -> bool:
         return self.is_lose() or self.is_win()
 
@@ -57,11 +58,15 @@ class GameState:
         return self.data._win
 
     def initialize(
-        self, ui: UI, layout: Layout, num_ghost_agents: int = 1000
+        self, 
+        ui: UI, 
+        layout: Layout, 
+        search: PacmanSearch,
+        num_ghost_agents: int = 1000,
     ) -> None:
         GameState.keys_pressed = ui.keys_pressed
         GameState.keys_waiting = ui.keys_waiting
-        self.data.initialize(layout, num_ghost_agents)
+        self.data.initialize(layout, num_ghost_agents, search)
 
     def get_pacman_state(self) -> AgentState:
         return copy.copy(self.data.agent_states[0])
@@ -74,6 +79,9 @@ class GameState:
 
     def get_capsules(self) -> list:
         return self.data.capsules
+    
+    def get_food(self) -> list[Union[Point, None]]:
+        return self.data.food.get_points() or [None]
 
     def get_num_food(self) -> int:
         return self.data.food.count()
@@ -85,39 +93,42 @@ class GameState:
 
 
 class GameRules:
+    @staticmethod
     def new_game(
-        self,
         layout: Layout,
         pacman_agent: list[Agent],
         ghost_agents: list[Agent],
         display,
+        pacman_search: PacmanSearchProblem = None,
     ) -> Game:
         agents = [pacman_agent] + ghost_agents[:layout.get_num_ghosts()]
         state = GameState()
-        state.initialize(display.ui, layout, len(ghost_agents))
-        game = Game(agents, display, self)
+        search = PacmanSearch(pacman_search) if pacman_search else None
+        state.initialize(display.ui, layout, search, len(ghost_agents))
+        game = Game(agents, display, GameRules)
         game.state = state
-        self.initialState = copy.deepcopy(state)
         return game
 
-    def process(self, state: GameState, game: Game) -> None:
+    @staticmethod
+    def process(state: GameState, game: Game) -> None:
         if state.is_win():
-            self.win(state, game)
+            GameRules.win(state, game)
         if state.is_lose():
-            self.lose(state, game)
+            GameRules.lose(state, game)
 
-    def win(self, state: GameState, game: Game) -> None:
+    @staticmethod
+    def win(state: GameState, game: Game) -> None:
         print(f"Pacman emerges victorious! Score: {state.data.score}")
         game.game_over = True
 
-    def lose(self, state: GameState, game: Game) -> None:
+    @staticmethod
+    def lose(state: GameState, game: Game) -> None:
         print(f"Pacman died! Score: {state.data.score}")
         game.game_over = True
 
-
 class PacmanRules:
     @staticmethod
-    def get_legal_actions(state: GameState) -> list[int]:
+    def get_legal_actions(state: GameState) -> list[Action]:
         return Actions.get_possible_actions(
             state.get_pacman_state().configuration,
             state.data.layout.walls,
@@ -134,7 +145,7 @@ class PacmanRules:
         pacman_state.configuration = pacman_state.configuration.generate_next(vector)
         next = pacman_state.configuration.get_position()
         nearest = get_nearest_point(next)
-
+        
         if manhattan_distance(nearest, next) <= 0.5:
             PacmanRules.consume(nearest, state)
 
@@ -174,7 +185,7 @@ class GhostRules:
         return actions
 
     @staticmethod
-    def apply_action(state: GameState, action: int, ghost_idx: int) -> None:
+    def apply_action(state: GameState, action: Action, ghost_idx: int) -> None:
         legal = GhostRules.get_legal_actions(state, ghost_idx)
         if action not in legal:
             raise Exception(f"Illegal action {action}")
@@ -229,7 +240,5 @@ class GhostRules:
             ghost_state.scared_timer = 0
 
     @staticmethod
-    def can_kill(
-        pacman: tuple[float, float], ghost: tuple[float, float]
-    ) -> bool:
+    def can_kill(pacman: Point, ghost: Point) -> bool:
         return manhattan_distance(pacman, ghost) <= COLLISION_TOLERANCE
