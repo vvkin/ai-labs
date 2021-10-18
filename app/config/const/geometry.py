@@ -1,3 +1,5 @@
+from app.utils.geometry import Point
+
 class Direction:
     WEST = -2
     SOUTH = -1

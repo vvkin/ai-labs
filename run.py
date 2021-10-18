@@ -1,7 +1,7 @@
 import argparse
 import random
 
-from app.utils.layout import Layout
+from app.utils.layout import Layout, MazeGenerator
 from app.pacman.domain.player import PlayerAgent
 from app.pacman.domain.ghost import RandomGhost
 from app.pacman.domain.rules import GameRules
@@ -52,22 +52,36 @@ def parse_args():
         help="Whether Pacman will be controlled by the algorithm",
         default=False,
     )
+    parser.add_argument(
+        '-g',
+        '--generate-maze',
+        action="store_true",
+        help="Whether generate maze or not",
+        default=False
+    )
 
     options, args = parser.parse_args(), {}
     if options.seed is not None:
         random.seed(options.seed)
-
-    if (layout := Layout.get_layout(options.layout)) is None:
-        raise Exception(f"The layout {options.layout} cannot be found")
-    else: args["layout"] = layout
-
-    args["pacman_agent"] = PlayerAgent()
-    args["ghost_agents"] = [RandomGhost(i + 1) for i in range(options.num_ghosts)]
-    args["display"] =  PacmanGraphics(UI(), zoom=options.zoom, frame_time=options.frame_time)
     
+    if options.generate_maze:
+        maze = MazeGenerator.generate(
+            height=32,
+            width=32,
+            num_food=10,
+            num_capsules=2, num_ghosts=1
+        )
+        layout = Layout.from_text(maze)
+    else: layout = Layout.get_layout(options.layout)
+
     if options.auto_pilot:
         search = PacmanSearchProblem()
         args["pacman_search"] = search
+
+    args["layout"] = layout
+    args["pacman_agent"] = PlayerAgent()
+    args["ghost_agents"] = [RandomGhost(i + 1) for i in range(options.num_ghosts)]
+    args["display"] =  PacmanGraphics(UI(), zoom=options.zoom, frame_time=options.frame_time)
     
     return args
 

@@ -7,3 +7,4 @@ Distribution = dict[str, float]
 Action = int
 Path = list[list[Action]]
 
+MazeText = list[list[str]]
