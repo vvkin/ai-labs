@@ -19,7 +19,6 @@ class GameStateData:
 
     def __post_init__(self, state: Optional["GameStateData"] = None) -> None:
         if state is not None:
-            self.pacman_search = copy.deepcopy(state.pacman_search)
             self.food = copy.copy(state.food)
             self.capsules = state.capsules[:]
             self.agent_states = [copy.copy(el) for el in state.agent_states]
@@ -31,10 +30,8 @@ class GameStateData:
         self, 
         layout:  Layout, 
         num_ghost_agents: int,
-        pacman_search = None,
     ) -> None:
         self.food = copy.deepcopy(layout.food)
-        self.pacman_search = copy.deepcopy(pacman_search)
         self.capsules = layout.capsules[:]
         self.layout = layout
         self.score = 0
@@ -52,6 +49,7 @@ class GameStateData:
 
         self._eaten = [False] * len(self.agent_states)
 
+
 class Game:
     def __init__(self, agents: list[Agent], display, rules) -> None:
         self.agent_crashed = False
@@ -63,9 +61,15 @@ class Game:
 
     def run(self) -> None:
         self.display.init(self.state.data)
-        num_agents = len(self.agents)
+        self.num_moves = 0
+
+        for agent in self.agents:
+            if hasattr(agent, "register_state"):
+                agent.register_state(self.state)
+
         agent_idx = 0
-        
+        num_agents = len(self.agents)
+
         while not self.game_over:
             agent = self.agents[agent_idx]
             state = copy.deepcopy(self.state)
@@ -73,14 +77,7 @@ class Game:
 
             self.history.append((agent_idx, action))
             self.state = self.state.generate_next(agent_idx, action)
-            
-            if self.state.data.pacman_search and agent_idx == 0:
-                pacman_search = self.state.data.pacman_search
-                pacman_search.handle_key(self.state)
-                if pacman_search.key_pressed() or action != Direction.STOP:
-                    pacman_search.update(self.state)
-                    self.display.draw_path(self.state.data)
-            
+
             self.display.update(self.state.data)
             self.rules.process(self.state, self)
             

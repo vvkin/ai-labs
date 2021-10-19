@@ -1,13 +1,6 @@
-from app.config.types import Point, Path
+import numpy as np
 
-def restore_path(start: Point, goal: Point, memory: dict[Point, float]) -> Path:
-    path = [goal]
-    
-    while goal in memory:
-        parent = memory[goal]
-        if parent == start: break
-        goal = parent
-        path.append(parent)
- 
-    # path.reverse()
-    return path
+def get_empty_adj_matrix(size: int) -> np.ndarray:
+    adj_matrix = np.full((size, size), float("inf"))
+    np.fill_diagonal(adj_matrix, 0)
+    return adj_matrix
