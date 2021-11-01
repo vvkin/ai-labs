@@ -1,84 +1,36 @@
+from typing import Callable
+
 from app.utils.helpers import time_it
-from app.utils.search import restore_path
-from app.utils.structures import Queue, Stack, PriorityQueue
-from app.config.types import Path
-from app.pacman.search.problem import Problem
+from app.utils.structures import  PriorityQueue
+from app.config.types import Action
+from app.pacman.search.problem import SearchProblem
 
 
 INF = float('inf')
 
 @time_it
-def bfs(problem: Problem) -> Path:
+def a_star(problem: SearchProblem, heuristic: Callable) -> list[Action]:
     start = problem.get_start()
-    goal = problem.get_goal()
-
-    queue = Queue()
-    visited = set()
-    memory = dict()
-    queue.enque((start, 0))
-
-    while not queue.is_empty():
-        parent, cost = queue.deque()
-        visited.add(parent)
-        if parent == goal: break
-
-        for node, move_cost in problem.get_neighbors(parent):
-            if node not in visited:
-                new_cost = cost + move_cost
-                memory[node] = parent
-                queue.enque((node, new_cost))
-
-    return restore_path(start, goal, memory)
-
-
-@time_it
-def dfs(problem: Problem) -> Path:
-    start = problem.get_start()
-    goal = problem.get_goal()
-
-    stack = Stack()
-    visited = set()
-    memory = dict()
-    stack.push((start, 0))
-
-    while not stack.is_empty():
-        parent, cost = stack.pop()
-        visited.add(parent)
-        if parent == goal: break
-
-        for node, move_cost in problem.get_neighbors(parent):
-            if node not in visited:
-                new_cost = cost + move_cost
-                memory[node] = parent
-                stack.push((node, new_cost))
-
-    return restore_path(start, goal, memory)
-
-
-@time_it
-def ucs(problem: Problem) -> Path:
-    start = problem.get_start()
-    goal = problem.get_goal()
-
     costs = {start: 0}
-    queue = PriorityQueue()
     visited = set()
-    memory = dict()
-    queue.enque(start, 0)
+    queue = PriorityQueue()
+    queue.enque((start, []), 0)
 
     while not queue.is_empty():
-        parent, cost = queue.deque()
+        (parent, actions), _ = queue.deque()
         visited.add(parent)
+        cost = costs[parent]
 
-        if parent == goal: break
-        if cost > costs[parent]: continue
+        if problem.is_goal(parent): # target found
+            return actions
 
-        for node, move_cost in problem.get_neighbors(parent):
-            if node not in visited:
+        for state, action, move_cost in problem.get_neighbors(parent):
+            if state not in visited:
                 new_cost = cost + move_cost
-                if new_cost < costs.get(node, INF):
-                    costs[node] = new_cost
-                    memory[node] = parent
-                    queue.enque(node, new_cost)
+                if new_cost < costs.get(state, INF):
+                    new_actions = actions + [action]
+                    priority = new_cost + heuristic(state, problem)
+                    costs[state] = new_cost
+                    queue.enque((state, new_actions), priority)
 
-    return restore_path(start, goal, memory)
+    return [] # no actions for non-existing path

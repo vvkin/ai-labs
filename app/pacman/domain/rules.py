@@ -10,7 +10,6 @@ from app.utils.grid import Grid
 from app.pacman.graphics.ui import UI
 from app.pacman.domain.agent import Agent, Actions, AgentState
 from app.pacman.domain.game import Game, GameStateData
-from app.pacman.search.pacman import PacmanSearch, PacmanSearchProblem
 
 
 class GameState:
@@ -61,12 +60,11 @@ class GameState:
         self, 
         ui: UI, 
         layout: Layout, 
-        search: PacmanSearch,
         num_ghost_agents: int = 1000,
     ) -> None:
         GameState.keys_pressed = ui.keys_pressed
         GameState.keys_waiting = ui.keys_waiting
-        self.data.initialize(layout, num_ghost_agents, search)
+        self.data.initialize(layout, num_ghost_agents)
 
     def get_pacman_state(self) -> AgentState:
         return copy.copy(self.data.agent_states[0])
@@ -99,12 +97,10 @@ class GameRules:
         pacman_agent: list[Agent],
         ghost_agents: list[Agent],
         display,
-        pacman_search: PacmanSearchProblem = None,
     ) -> Game:
         agents = [pacman_agent] + ghost_agents[:layout.get_num_ghosts()]
         state = GameState()
-        search = PacmanSearch(pacman_search) if pacman_search else None
-        state.initialize(display.ui, layout, search, len(ghost_agents))
+        state.initialize(display.ui, layout, len(ghost_agents))
         game = Game(agents, display, GameRules)
         game.state = state
         return game

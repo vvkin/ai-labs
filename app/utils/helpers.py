@@ -1,7 +1,7 @@
 import random
 import time
 from collections import Counter
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from app.config.types import Distribution
 
@@ -26,9 +26,13 @@ def sample(dist: Distribution) -> str:
 
 def time_it(fn: Callable) -> Callable:
     def timed(*args, **kwargs) -> Any:
-        start = time.time()
+        start = time.perf_counter()
         result = fn(*args, **kwargs)
-        end = time.time()
+        end = time.perf_counter()
         print(f'Time ({fn.__name__}): {(end - start) * 1000} ms')
         return result
     return timed
+
+
+def to_odd(value: int) -> int:
+    return value if value & 1 else value + 1
