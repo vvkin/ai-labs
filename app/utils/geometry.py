@@ -60,4 +60,4 @@ def get_nearest_point(position: Vector) -> Point:
 
 
 def normalize_point(point: Point) -> Point:
-    return (round(point[0]), round(point[1]))
+    return (int(point[0]), int(point[1]))

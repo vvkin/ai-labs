@@ -1,18 +1,23 @@
 import random
 import time
+import numpy as np
 from collections import Counter
 from typing import Any, Callable, Optional
 
 from app.config.types import Distribution
 
 
-def normalize(counter: Distribution) -> Distribution:
-    if isinstance(counter, Counter):
-        counter = dict(counter)
-    sum_all = sum(counter.values())
-    normalized = {}
-    for key, value in counter.items():
-        normalized[key] = value / sum_all
+def normalize(
+    mapping: dict[str, float], softmax: bool = False
+) -> dict[str, float]:
+    keys, values = zip(*mapping.items())
+
+    values = np.array(values)
+    if softmax is True:
+        values = np.exp(values - np.max(values))
+    values = values / np.sum(values)
+
+    normalized = dict(zip(keys, values.tolist()))
     return normalized
 
 

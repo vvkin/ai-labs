@@ -13,6 +13,10 @@ class Agent:
 
     def get_action(self, state) -> str:
         raise NotImplementedError
+    
+    @property
+    def algorithm(self) -> Optional[str]:
+        return None
 
 
 @dataclass(eq=False)

@@ -44,6 +44,15 @@ class GameState:
         state.data.score += state.data.score_change
         return state
     
+    def get_ghost_position(self, idx: int) -> Point:
+        return self.get_ghost_state(idx).get_position()
+
+    def get_ghost_positions(self) -> list[Point]:
+        return [ghost.get_position() for ghost in self.data.agent_states[1:]]
+    
+    def get_score(self) -> float:
+        return self.data.score
+    
     def get_walls(self) -> Grid:
         return self.data.layout.walls
     
@@ -97,11 +106,12 @@ class GameRules:
         pacman_agent: list[Agent],
         ghost_agents: list[Agent],
         display,
+        log_path: str,
     ) -> Game:
         agents = [pacman_agent] + ghost_agents[:layout.get_num_ghosts()]
         state = GameState()
         state.initialize(display.ui, layout, len(ghost_agents))
-        game = Game(agents, display, GameRules)
+        game = Game(agents, display, GameRules, log_path)
         game.state = state
         return game
 
