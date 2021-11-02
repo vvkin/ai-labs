@@ -1,7 +1,60 @@
 algorithm,elapsed,score,win
-,24.2721133,420,True
-,10.1356139,-521,False
-,19.6378524,451,True
-,32.3898113,367,True
-,23.5680114,393,True
-,23.5878491,410,True
+minimax with alpha-beta pruning,23.7209556,-194,False
+minimax with alpha-beta pruning,15.634229999999999,855,True
+minimax with alpha-beta pruning,27.293933199999998,373,True
+minimax with alpha-beta pruning,35.6528804,-669,False
+expectimax,14.1975969,455,True
+expectimax,9.5355992,479,True
+expectimax,10.6019674,-559,False
+,22.5871112,424,True
+,11.0179054,487,True
+,27.1752001,1529,True
+,26.4841035,1736,True
+minimax with alpha-beta pruning,98.021645,213,False
+minimax with alpha-beta pruning,6.993217,-535,False
+minimax with alpha-beta pruning,12.1176806,-538,False
+minimax with alpha-beta pruning,7.4811456,-530,False
+minimax with alpha-beta pruning,9.866543100000001,-534,False
+expectimax,4.3565621000000005,-524,False
+expectimax,7.6881536,508,True
+expectimax,7.1251997000000005,-528,False
+expectimax,15.0978808,-570,False
+expectimax,9.7566294,-523,False
+,4.8865232,490,True
+,38.9108235,1361,True
+,7.492185200000001,487,True
+,9.4810846,487,True
+expectimax,10.1956487,478,True
+expectimax,12.9722206,-358,False
+expectimax,16.672716899999998,-365,False
+minimax with alpha-beta pruning,5.5958044,-529,False
+minimax with alpha-beta pruning,21.782631000000002,421,True
+minimax with alpha-beta pruning,14.7278471,-556,False
+minimax with alpha-beta pruning,6.8300203,-526,False
+expectimax,5.7455437,-519,False
+expectimax,19.260862799999998,-582,False
+expectimax,19.391907,-588,False
+expectimax,4.9955237,-529,False
+expectimax,5.977657000000001,-518,False
+expectimax,3.4513350000000003,-512,False
+,7.946650299999999,-542,False
+,31.8467577,-685,False
+,1.8209217000000002,-509,False
+,10.0019937,472,True
+,4.9373659,-525,False
+,5.2695775,720,True
+,0.4741712000000001,-493,False
+,7.264784500000001,698,True
+,2.1963251,-482,False
+,21.5901157,423,True
+,8.2291046,-516,False
+,7.4667546,-533,False
+expectimax,22.131550999999998,-587,False
+expectimax,10.2633149,-534,False
+expectimax,2.418335,-503,False
+minimax with alpha-beta pruning,12.3918638,-543,False
+minimax with alpha-beta pruning,12.7864249,-535,False
+minimax with alpha-beta pruning,5.7464108000000005,-328,False
+,16.5871055,662,True
+,2.65903,-303,False
+,11.3792389,-340,False

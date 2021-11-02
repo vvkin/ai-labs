@@ -47,7 +47,7 @@ class GreedyGhost(GhostAgent):
         pacman_pos = state.get_pacman_position()
         for action in state.get_legal_actions(self.index):
             move = Actions.direction_to_vector(action)
-            next_pos = add_points(ghost_pos, move)
+            next_pos = normalize_point(add_points(ghost_pos, move))
             problem = PositionProblem(state, pacman_pos, next_pos)
             actions = self.search_fn(problem)
             dist[action] = -len(actions)

@@ -14,8 +14,7 @@ class Agent:
     def get_action(self, state) -> str:
         raise NotImplementedError
     
-    @property
-    def algorithm(self) -> Optional[str]:
+    def get_algorithm(self) -> Optional[str]:
         return None
 
 

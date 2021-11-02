@@ -1,5 +1,6 @@
 import argparse
 import random
+from app.pacman.multiagent.agents import ExpectimaxAgent, MinimaxAgent
 from app.pacman.search.agents import AllFoodAgent, PositionAgent
 from app.utils.layout import Layout, MazeGenerator
 from app.pacman.domain.player import PlayerAgent
@@ -71,21 +72,21 @@ def parse_args():
     
     if options.generate_maze:
         maze = MazeGenerator.generate(
-            height=24,
-            width=24,
+            height=15,
+            width=15,
             num_food=5,
-            num_capsules=2, num_ghosts=1
+            num_capsules=3, num_ghosts=2,
         )
         layout = Layout.from_text(maze)
     else: layout = Layout.get_layout(options.layout)
 
     if options.auto_pilot:
-        player_agent = AllFoodAgent() #PositionAgent(layout.food.get_points()[0]) #AllFoodAgent()
+        player_agent = MinimaxAgent() #PositionAgent(layout.food.get_points()[0]) #AllFoodAgent()
     else: player_agent = PlayerAgent()
  
     args["layout"] = layout
     args["pacman_agent"] = player_agent
-    args["ghost_agents"] = [GreedyGhost(i + 1) for i in range(options.num_ghosts)]
+    args["ghost_agents"] = [MinimaxAgent(i + 1) for i in range(options.num_ghosts)]
     args["display"] =  PacmanGraphics(UI(), zoom=options.zoom, frame_time=options.frame_time)
     args["log_path"] = options.log_path
     

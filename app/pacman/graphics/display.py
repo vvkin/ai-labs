@@ -107,7 +107,7 @@ class PacmanGraphics:
             self.__animate_pacman(agent_state, prev_state, prev_image)
         else: 
             self.__move_ghost(agent_state, agent_idx, prev_image)
-            
+
         self.agent_images[agent_idx] = (agent_state, prev_image)
         if new_state._capsule_eaten is not None:
             self.__remove_capsules(new_state._capsule_eaten, self.capsules)

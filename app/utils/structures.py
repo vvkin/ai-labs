@@ -2,7 +2,7 @@ import heapq
 import numpy as np
 from dataclasses import dataclass
 from collections import deque
-from typing import Union, Any
+from typing import Mapping, Union, Any
 
 from app.config.types import Point
 
@@ -68,3 +68,16 @@ class IndexDict:
 
     def as_dict(self) -> dict[Point, int]:
         return self.data
+
+class MazeDistance:
+    def __init__(self, maze_dists: np.ndarray, mapping, goal_mapping) -> None:
+        self.maze_dists = maze_dists
+        self.mapping = mapping
+        self.goal_mapping = goal_mapping
+
+    def get(self, start: Point, end: Point) -> float:
+        end = self.mapping[end]
+        if self.goal_mapping is not None:
+            end = self.goal_mapping[end]
+        start = self.mapping[start]
+        return self.maze_dists[end, start]
