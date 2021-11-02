@@ -42,7 +42,21 @@ class GameState:
 
         state.data._agent_moved = agent_idx
         state.data.score += state.data.score_change
+        state.data._last_action = action
+
         return state
+    
+    def get_ghost_position(self, idx: int) -> Point:
+        return self.get_ghost_state(idx).get_position()
+
+    def get_ghost_positions(self) -> list[Point]:
+        return [ghost.get_position() for ghost in self.data.agent_states[1:]]
+    
+    def get_score(self) -> float:
+        return self.data.score
+    
+    def get_last_action(self) -> Action:
+        return self.data._last_action
     
     def get_walls(self) -> Grid:
         return self.data.layout.walls
@@ -79,7 +93,7 @@ class GameState:
         return self.data.capsules
     
     def get_food(self) -> list[Union[Point, None]]:
-        return self.data.food.get_points() or [None]
+        return self.data.food.get_points()
 
     def get_num_food(self) -> int:
         return self.data.food.count()
@@ -97,11 +111,12 @@ class GameRules:
         pacman_agent: list[Agent],
         ghost_agents: list[Agent],
         display,
+        log_path: str,
     ) -> Game:
         agents = [pacman_agent] + ghost_agents[:layout.get_num_ghosts()]
         state = GameState()
         state.initialize(display.ui, layout, len(ghost_agents))
-        game = Game(agents, display, GameRules)
+        game = Game(agents, display, GameRules, log_path)
         game.state = state
         return game
 
@@ -184,7 +199,8 @@ class GhostRules:
     def apply_action(state: GameState, action: Action, ghost_idx: int) -> None:
         legal = GhostRules.get_legal_actions(state, ghost_idx)
         if action not in legal:
-            raise Exception(f"Illegal action {action}")
+            # raise Exception(f"Illegal action {action}")
+            action = legal[0]
 
         ghost_state = state.data.agent_states[ghost_idx]
         vector = Actions.direction_to_vector(

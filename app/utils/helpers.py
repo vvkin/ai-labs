@@ -1,27 +1,37 @@
 import random
 import time
-from collections import Counter
-from typing import Any, Callable, Optional
+import inspect
+import numpy as np
+from typing import Any, Callable
 
 from app.config.types import Distribution
 
 
-def normalize(counter: Distribution) -> Distribution:
-    if isinstance(counter, Counter):
-        counter = dict(counter)
-    sum_all = sum(counter.values())
-    normalized = {}
-    for key, value in counter.items():
-        normalized[key] = value / sum_all
+def normalize(
+    mapping: dict[str, float]
+) -> dict[str, float]:
+    keys, values = zip(*mapping.items())
+    values = np.array(values)
+    values_sum = np.sum(values)
+
+    if values_sum == 0: 
+        return mapping
+
+    values = values / values_sum
+    normalized = dict(zip(keys, values.tolist()))
     return normalized
 
 
 def sample(dist: Distribution) -> str:
-    actions = random.choices(
-        population=list(dist.keys()),
-        weights=list(dist.values()),
-    )
-    return actions[0]
+    population = list(dist.keys())
+    weights = list(dist.values())
+    if sum(weights) != 0:
+        actions = random.choices(
+            population=population,
+            weights=weights,
+        )
+        return actions[0]
+    else: return population[0]
 
 
 def time_it(fn: Callable) -> Callable:
@@ -36,3 +46,6 @@ def time_it(fn: Callable) -> Callable:
 
 def to_odd(value: int) -> int:
     return value if value & 1 else value + 1
+
+def get_arg_names(fn: Callable) -> list[str]:
+    return list(inspect.signature(fn).parameters.keys())

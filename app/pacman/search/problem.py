@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any
+from typing import Any, Optional
 
 from app.config.const.geometry import Direction
 from app.config.types import Action, Point
@@ -79,12 +79,15 @@ class PositionProblem(SearchProblem):
         self,
         game_state,
         goal: Point,
+        start: Optional[Point],
         cost_fn: CostFn = UniformCostFn,
         **cost_kwargs: Any,
     ) -> None:
         super().__init__(game_state, cost_fn, **cost_kwargs)
         self.goal = goal
-        self.start = SearchState(game_state.get_pacman_position())
+        self.start = SearchState(
+            start if start is not None else game_state.get_pacman_position()
+        )
 
     def is_goal(self, state: SearchState) -> bool:
         return state.position == self.goal

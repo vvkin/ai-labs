@@ -1,10 +1,13 @@
 import copy
 from dataclasses import InitVar, dataclass
-from typing import Optional
+from typing import Optional, Union
 
 from app.config.const.geometry import Direction
+from app.config.types import Action
 from app.utils.layout import Layout
 from app.pacman.domain.agent import Agent, AgentState, AgentConfig
+from app.utils.logger import Logger
+from app.utils.timer import Timer
 
 
 @dataclass
@@ -14,6 +17,7 @@ class GameStateData:
     _food_eaten: Optional[tuple[float, float]] = None
     _capsule_eaten: int = None
     _agent_moved: int = None
+    _last_action: Action = None
     _lose: bool = False
     _win: bool = False
 
@@ -51,18 +55,21 @@ class GameStateData:
 
 
 class Game:
-    def __init__(self, agents: list[Agent], display, rules) -> None:
+    def __init__(self, agents: list[Agent], display, rules, log_path) -> None:
         self.agent_crashed = False
         self.agents = agents
         self.display = display
         self.rules = rules
         self.game_over = False
         self.history = []
+        self.timer = Timer()
+        self.logger = Logger(log_path)
 
     def run(self) -> None:
         self.display.init(self.state.data)
         self.num_moves = 0
 
+        self.timer.start()
         for agent in self.agents:
             if hasattr(agent, "register_state"):
                 agent.register_state(self.state)
@@ -70,19 +77,30 @@ class Game:
         agent_idx = 0
         num_agents = len(self.agents)
 
-        while not self.game_over:
+        while self.game_over is False:
             agent = self.agents[agent_idx]
-            state = copy.deepcopy(self.state)
-            action = agent.get_action(state)
+            action = agent.get_action(copy.deepcopy(self.state))
 
             self.history.append((agent_idx, action))
             self.state = self.state.generate_next(agent_idx, action)
-
+            
             self.display.update(self.state.data)
             self.rules.process(self.state, self)
-            
+           
             if agent_idx == num_agents + 1:
                 self.num_moves += 1
             agent_idx = (agent_idx + 1) % num_agents
 
+        self.timer.stop()
         self.display.finish()
+
+        if (stats := self.__get_stats()) is not None:
+            self.logger.log_object(stats)
+    
+    def __get_stats(self) -> dict[str, Union[bool, str, float]]:
+        return {
+            "win": self.state.is_win(),
+            "elapsed": self.timer.elapsed,
+            "score": self.state.get_score(),
+            "algorithm": self.agents[0].get_algorithm()
+        } if self.game_over else None

@@ -160,7 +160,7 @@ class MazeGenerator:
         MazeGenerator.__fill_value(maze, chosen[food:food + capsules], Cell.CAPSULE)
 
         pacman_x, pacman_y = chosen[food + capsules]
-        maze[pacman_y, pacman_x] = Cell.PACMAN
+        maze[pacman_x, pacman_y] = Cell.PACMAN
 
         for idx in range(1, ghosts + 1):
             x, y = chosen[food + capsules + idx]

@@ -13,6 +13,9 @@ class Agent:
 
     def get_action(self, state) -> str:
         raise NotImplementedError
+    
+    def get_algorithm(self) -> Optional[str]:
+        return None
 
 
 @dataclass(eq=False)

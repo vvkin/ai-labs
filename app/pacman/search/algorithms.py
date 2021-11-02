@@ -8,8 +8,7 @@ from app.pacman.search.problem import SearchProblem
 
 INF = float('inf')
 
-@time_it
-def a_star(problem: SearchProblem, heuristic: Callable) -> list[Action]:
+def a_star(problem: SearchProblem, heuristic: Callable, greedy: bool = False) -> list[Action]:
     start = problem.get_start()
     costs = {start: 0}
     visited = set()
@@ -30,6 +29,7 @@ def a_star(problem: SearchProblem, heuristic: Callable) -> list[Action]:
                 if new_cost < costs.get(state, INF):
                     new_actions = actions + [action]
                     priority = new_cost + heuristic(state, problem)
+                    if not greedy: priority += new_cost
                     costs[state] = new_cost
                     queue.enque((state, new_actions), priority)
 
