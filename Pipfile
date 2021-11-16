@@ -7,8 +7,12 @@ name = "pypi"
 numpy = "*"
 scipy = "*"
 pandas = "*"
+sklearn = "*"
+seaborn = "*"
+matplotlib = "*"
+hy = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3.8"
