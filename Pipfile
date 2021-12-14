@@ -11,6 +11,9 @@ sklearn = "*"
 seaborn = "*"
 matplotlib = "*"
 hy = "*"
+torch = "*"
+torchvision = "*"
+torchsummary = "*"
 
 [dev-packages]
 

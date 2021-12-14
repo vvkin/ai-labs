@@ -8,6 +8,11 @@ from app.pacman.domain.ghost import GreedyGhost, RandomGhost
 from app.pacman.domain.rules import GameRules
 from app.pacman.graphics.ui import UI
 from app.pacman.graphics.display import PacmanGraphics
+from app.pacman.rl.config import DQNAgentConfig
+from app.pacman.rl.dqn.configs.model import ModelConfig
+from app.pacman.rl.dqn.configs.dqn import DQNConfig
+from app.pacman.rl.config import EpsParams
+from app.pacman.rl.agents import DQNAgent
 
 
 def parse_args():
@@ -70,30 +75,60 @@ def parse_args():
     if options.seed is not None:
         random.seed(options.seed)
     
-    if options.generate_maze:
-        maze = MazeGenerator.generate(
-            height=24,
-            width=24,
-            num_food=5,
-            num_capsules=3, num_ghosts=2,
-        )
-        layout = Layout.from_text(maze)
-    else: layout = Layout.get_layout(options.layout)
+    args = {"num_games": int(1e5) }
 
-    if options.auto_pilot:
-        player_agent = MinimaxAgent() #PositionAgent(layout.food.get_points()[0]) #AllFoodAgent()
-    else: player_agent = PlayerAgent()
- 
-    args["layout"] = layout
-    args["pacman_agent"] = player_agent
-    args["ghost_agents"] = [MinimaxAgent(i + 1) for i in range(options.num_ghosts)]
+    args["ghost_agents"] = [RandomGhost(i + 1) for i in range(options.num_ghosts)]
     args["display"] =  PacmanGraphics(UI(), zoom=options.zoom, frame_time=options.frame_time)
     args["log_path"] = options.log_path
+
+    layout_params = {
+        "width": 32,
+        "height": 32,
+        "num_food": 25,
+        "num_ghosts": 1,
+    }
+
+    agent_config = DQNAgentConfig(
+        model=ModelConfig(
+            dqn=DQNConfig(
+                width=32,
+                height=32,
+                in_channels=4,
+                out_features=4,
+            ),
+            memory=10000,
+            lr=2e-4,
+            batch_size=64,
+            gamma=0.999,
+            update_step=200,
+            device="cpu",
+            train_start=2000,
+            model_path="app/pacman/rl/dqn/trained/checkpoint.tar.pth",
+        ),
+        eps_params=EpsParams(start=0.9, end=0.05, step=10000),
+        train=True,
+    )
+    args["pacman_agent"] = DQNAgent(agent_config)
     
-    return args
+    return args, layout_params
+
+def generate_layout(params) -> Layout:
+    maze = MazeGenerator.generate(
+        height=params["height"],
+        width=params["width"],
+        num_food=params["num_food"],
+        num_ghosts=params["num_ghosts"],
+        num_capsules=0,
+    )
+    layout = Layout.from_text(maze)
+    return layout
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    game = GameRules.new_game(**args)
-    game.run()
+    args, layout_params = parse_args()
+    num_games = args.pop("num_games")
+
+    for idx in range(num_games):
+        args["layout"] = generate_layout(layout_params)
+        game = GameRules.new_game(**args)
+        game.run()

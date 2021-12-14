@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 from typing import Optional, Union
 
 from app.config.const.pacman import *
@@ -92,8 +93,14 @@ class GameState:
     def get_capsules(self) -> list:
         return self.data.capsules
     
-    def get_food(self) -> list[Union[Point, None]]:
+    def get_food_points(self) -> list[Union[Point, None]]:
         return self.data.food.get_points()
+
+    def get_food(self) -> Grid:
+        return self.data.food
+
+    def get_agent_states(self) -> list[AgentState]:
+        return self.data.agent_states
 
     def get_num_food(self) -> int:
         return self.data.food.count()
@@ -102,6 +109,27 @@ class GameState:
         if agent_idx == 0 or agent_idx >= self.get_num_agents():
             raise Exception("Invalid index")
         return self.data.agent_states[agent_idx]
+    
+    def get_pacman_matrix(self) -> np.ndarray:
+        pacman = self.get_pacman_state()
+        walls = self.get_walls().data
+
+        matrix = np.zeros_like(walls)
+        if pacman.is_pacman:
+            xx, yy = map(int, pacman.get_position())
+            matrix[xx][yy] = 1
+        return matrix
+
+    def get_ghost_matrix(self) -> np.ndarray:
+        agents = self.get_agent_states()
+        walls = self.get_walls().data
+
+        matrix = np.zeros_like(walls)
+        for agent in agents:
+            if not agent.is_pacman:
+                xx, yy = map(int, agent.get_position())
+                matrix[xx][yy] = 1
+        return matrix
 
 
 class GameRules:

@@ -1,6 +1,7 @@
 import random
 import time
 import inspect
+import torch
 import numpy as np
 from typing import Any, Callable
 
@@ -49,3 +50,6 @@ def to_odd(value: int) -> int:
 
 def get_arg_names(fn: Callable) -> list[str]:
     return list(inspect.signature(fn).parameters.keys())
+
+def to_numpy(tensor: torch.Tensor) -> np.ndarray:
+    return tensor.cpu().detach().numpy()
