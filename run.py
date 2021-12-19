@@ -72,8 +72,8 @@ def parse_args():
     
     if options.generate_maze:
         maze = MazeGenerator.generate(
-            height=15,
-            width=15,
+            height=24,
+            width=24,
             num_food=5,
             num_capsules=3, num_ghosts=2,
         )
